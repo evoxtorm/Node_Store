@@ -34,3 +34,11 @@ exports.createStore = async (req, res) => {
   //   })
     console.log('It worked');
 };
+
+
+exports.getStores = async (req, res) => {
+  //Query the database for a list of all Stores
+  const stores = await Store.find();
+//  console.log(stores);
+  res.render('stores', { title: 'Stores', stores });
+};
