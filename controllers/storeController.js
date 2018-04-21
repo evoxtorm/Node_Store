@@ -17,8 +17,19 @@ exports.addStore = (req, res) => {
   res.render('editStore', { title: 'Add Store'});
 };
 
-exports.createStore = (req, res) => {
+exports.createStore = async (req, res) => {
   //res.json(req.body);
   const store = new Store(req.body);
-  store.save();
+  await store.save();
+  res.redirect('/');
+  // Promise example
+  // store
+  //   .save()
+  //   .then(store => {
+  //     res.json(store);
+  //   })
+  //   .catch(err => {
+  //     throw Error(err);
+  //   })
+    console.log('It worked');
 };
