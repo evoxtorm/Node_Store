@@ -1,8 +1,4 @@
-//- div
-//-   p Hello! my dog name is #{dog}
-//-   span yo!
-
 extends layout
 
 block content
-  p Hello
+  h2 Sale ends in #{h.moment().endOf('day').fromNow()}
