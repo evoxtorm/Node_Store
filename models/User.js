@@ -21,10 +21,7 @@ const userSchema = new Schema({
     trim: true
   },
   resetPasswordToken: String,
-  resetPasswordExpires: Date,
-  hearts: [
-    { type: mongoose.Schema.ObjectId, ref: 'Store' }
-  ]
+  resetPasswordExpires: Date
 });
 
 userSchema.virtual('gravatar').get(function() {
