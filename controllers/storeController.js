@@ -153,5 +153,27 @@ exports.searchStores = async (req, res) => {
     })
     // limit top 5️⃣ results
     .limit(5);
-  res.json(stores);
+  //res.json(stores);
+};
+
+exports.mapStores = async (req, res) => {
+  const coordinates = [req.query.lng, req.query.lat].map(parseFloat);
+  // res.json({
+  //   it: 'Works'
+  // });
+  //res.json(coordinates);
+  const q = {
+    location: {
+      $near: {
+        $geometry: {
+          type: 'Point',
+          coordinates
+        },
+        $maxDistance: 10000 //It is equal to 10 Km 👉
+      }
+    }
+  };
+
+  const stores = await Store.find(q).select('slug name description location').limit(10);
+  res.json(storeSchema);
 };
