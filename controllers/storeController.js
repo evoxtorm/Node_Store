@@ -129,3 +129,29 @@ exports.getStoresByTag = async (req, res) => {
     stores
   });
 };
+
+exports.searchStores = async (req, res) => {
+  // res.json({
+  //   it: 'Worked'
+  // });
+  const stores = await Store
+    // first find stores that match ℹ️
+    .find({
+      $text: {
+        $search: req.query.q
+      }
+    }, {
+      score: {
+        $meta: 'textScore'
+      }
+    })
+    //  SOrt them in correct order 💁
+    .sort({
+      score: {
+        $meta: 'textScore'
+      }
+    })
+    // limit top 5️⃣ results
+    .limit(5);
+  res.json(stores);
+};
