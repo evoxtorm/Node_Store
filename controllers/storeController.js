@@ -177,3 +177,9 @@ exports.mapStores = async (req, res) => {
   const stores = await Store.find(q).select('slug name description location').limit(10);
   res.json(storeSchema);
 };
+
+exports.mapPage = (req, res) => {
+  res.render('map', {
+    title: 'Map'
+  });
+};
