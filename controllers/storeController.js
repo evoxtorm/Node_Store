@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Store = mongoose.model('Store');
+const User = mongoose.model('User');
 const multer = require('multer');
 const jimp = require('jimp');
 const uuid = require('uuid');
@@ -64,9 +65,10 @@ exports.getStores = async (req, res) => {
 
 const confirmOwner = (store, user) => {
   if (!store.author.equals(user._id)) {
-    throw Error(' ❎ You must own a store 🏬 in order to edit it 🔐! ');
+    throw Error('You must own a store in order to edit it!');
   }
-}
+};
+
 
 exports.editStore = async (req, res) => {
   // 1. Find the store given the ID
@@ -99,9 +101,8 @@ exports.updateStore = async (req, res) => {
 
 exports.getStoreBySlug = async (req, res, next) => {
   const store = await Store.findOne({
-      slug: req.params.slug
-    })
-    .populate('author');
+    slug: req.params.slug
+  }).populate('author');
   if (!store) return next();
   res.render('store', {
     store,
@@ -130,12 +131,10 @@ exports.getStoresByTag = async (req, res) => {
   });
 };
 
+
 exports.searchStores = async (req, res) => {
-  // res.json({
-  //   it: 'Worked'
-  // });
   const stores = await Store
-    // first find stores that match ℹ️
+    // first find stores that match
     .find({
       $text: {
         $search: req.query.q
@@ -145,23 +144,19 @@ exports.searchStores = async (req, res) => {
         $meta: 'textScore'
       }
     })
-    //  SOrt them in correct order 💁
+    // the sort them
     .sort({
       score: {
         $meta: 'textScore'
       }
     })
-    // limit top 5️⃣ results
+    // limit to only 5 results
     .limit(5);
-  //res.json(stores);
+  res.json(stores);
 };
 
 exports.mapStores = async (req, res) => {
   const coordinates = [req.query.lng, req.query.lat].map(parseFloat);
-  // res.json({
-  //   it: 'Works'
-  // });
-  //res.json(coordinates);
   const q = {
     location: {
       $near: {
@@ -169,17 +164,32 @@ exports.mapStores = async (req, res) => {
           type: 'Point',
           coordinates
         },
-        $maxDistance: 10000 //It is equal to 10 Km 👉
+        $maxDistance: 10000 // 10km
       }
     }
   };
 
-  const stores = await Store.find(q).select('slug name description location').limit(10);
-  res.json(storeSchema);
+  const stores = await Store.find(q).select('slug name description location photo').limit(10);
+  res.json(stores);
 };
 
 exports.mapPage = (req, res) => {
   res.render('map', {
     title: 'Map'
   });
+};
+
+exports.heartStore = async (req, res) => {
+  const hearts = req.user.hearts.map(obj => obj.toString());
+  const operator = hearts.includes(req.params.id) ? '$pull' : '$addToSet';
+  const user = await User
+    .findByIdAndUpdate(req.user._id, {
+      [operator]: {
+        hearts: req.params.id
+      }
+    }, {
+      new: true
+    });
+  //  console.log(hearts);
+  res.json(user);
 };
