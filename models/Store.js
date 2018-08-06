@@ -38,6 +38,13 @@ const storeSchema = new mongoose.Schema({
     ref: 'User',
     required: 'You must supply an author'
   }
+}, {
+  toJSON: {
+    virtuals: true
+  },
+  toObject: {
+    virtuals: true
+  },
 });
 
 // Define our indexes
@@ -46,7 +53,9 @@ storeSchema.index({
   description: 'text'
 });
 
-storeSchema.index({ location: '2dsphere' });
+storeSchema.index({
+  location: '2dsphere'
+});
 
 storeSchema.pre('save', async function(next) {
   if (!this.isModified('name')) {
@@ -56,7 +65,9 @@ storeSchema.pre('save', async function(next) {
   this.slug = slug(this.name);
   // find other stores that have a slug of wes, wes-1, wes-2
   const slugRegEx = new RegExp(`^(${this.slug})((-[0-9]*$)?)$`, 'i');
-  const storesWithSlug = await this.constructor.find({ slug: slugRegEx });
+  const storesWithSlug = await this.constructor.find({
+    slug: slugRegEx
+  });
   if (storesWithSlug.length) {
     this.slug = `${this.slug}-${storesWithSlug.length + 1}`;
   }
@@ -65,11 +76,39 @@ storeSchema.pre('save', async function(next) {
 });
 
 storeSchema.statics.getTagsList = function() {
-  return this.aggregate([
-    { $unwind: '$tags' },
-    { $group: { _id: '$tags', count: { $sum: 1 } } },
-    { $sort: { count: -1 } }
+  return this.aggregate([{
+      $unwind: '$tags'
+    },
+    {
+      $group: {
+        _id: '$tags',
+        count: {
+          $sum: 1
+        }
+      }
+    },
+    {
+      $sort: {
+        count: -1
+      }
+    }
   ]);
+};
+
+storeSchema.statics.getTopStores = function() {
+  return this.aggregate([
+    // Lookup Stores and populate their reviews
+    // filter for only items that have 2 or more reviews
+    // Add the average reviews field
+    // Sort it by our new field, height reviews first
+    // limit to at most 10
+  ])
 }
+
+storeSchema.virtual('reviews', {
+  ref: 'Review', // what model to link
+  localField: '_id', // Which field on the store
+  foreignField: 'store' // Which field on the review?
+});
 
 module.exports = mongoose.model('Store', storeSchema);
